@@ -1,0 +1,475 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>SMTP Transport · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="sendmail.html" />
+    
+    
+    <link rel="prev" href="_index.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../creating-messages/email.html">
+            
+                <a href="../creating-messages/email.html">
+            
+                    
+                    Creating Messages
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="_index.html">
+            
+                <a href="_index.html">
+            
+                    
+                    Sending Messages
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter active" data-level="1.3.1" data-path="smtp.html">
+            
+                <a href="smtp.html">
+            
+                    
+                    SMTP Transport
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="sendmail.html">
+            
+                <a href="sendmail.html">
+            
+                    
+                    Sendmail Transport
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="file.html">
+            
+                <a href="file.html">
+            
+                    
+                    File Transport
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="stub.html">
+            
+                <a href="stub.html">
+            
+                    
+                    Stub Transport
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href=".." >SMTP Transport</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <p>SMTP Transport</p>
+<p>This transport uses the SMTP protocol to send emails over the network (locally or remotely).</p>
+<p>It is designed to be:</p>
+<ul>
+<li>Secured: email are encrypted by default</li>
+<li>Modern: Unicode support for email content and sender/recipient addresses when compatible</li>
+<li>Fast: supports tcp connection reuse</li>
+</ul>
+<p>This client is designed to send emails to a relay server, and should <em>not</em> be used to send
+emails directly to the destination.</p>
+<p>The relay server can be the local email server, a specific host or a third-party service.</p>
+<h4 id="simple-example">Simple example</h4>
+<p>This is the most basic example of usage:</p>
+<pre><code class="lang-rust,no_run">extern crate lettre;
+
+use lettre::{SendableEmail, EmailAddress, Transport, Envelope, SmtpClient};
+
+fn main() {
+    let email = SendableEmail::new(
+        Envelope::new(
+            Some(EmailAddress::new(&quot;user@localhost&quot;.to_string()).unwrap()),
+            vec![EmailAddress::new(&quot;root@localhost&quot;.to_string()).unwrap()],
+        ).unwrap(),
+        &quot;id&quot;.to_string(),
+        &quot;Hello world&quot;.to_string().into_bytes(),
+    );
+
+    // Open a local connection on port 25
+    let mut mailer =
+    SmtpClient::new_unencrypted_localhost().unwrap().transport();
+    // Send the email
+    let result = mailer.send(email);
+
+    assert!(result.is_ok());
+}
+</code></pre>
+<h4 id="complete-example">Complete example</h4>
+<pre><code class="lang-rust,no_run">extern crate lettre;
+
+use lettre::smtp::authentication::{Credentials, Mechanism};
+use lettre::{SendableEmail, Envelope, EmailAddress, Transport, SmtpClient};
+use lettre::smtp::extension::ClientId;
+use lettre::smtp::ConnectionReuseParameters;
+
+fn main() {
+    let email_1 = SendableEmail::new(
+        Envelope::new(
+            Some(EmailAddress::new(&quot;user@localhost&quot;.to_string()).unwrap()),
+            vec![EmailAddress::new(&quot;root@localhost&quot;.to_string()).unwrap()],
+        ).unwrap(),
+        &quot;id1&quot;.to_string(),
+        &quot;Hello world&quot;.to_string().into_bytes(),
+    );
+
+    let email_2 = SendableEmail::new(
+        Envelope::new(
+            Some(EmailAddress::new(&quot;user@localhost&quot;.to_string()).unwrap()),
+            vec![EmailAddress::new(&quot;root@localhost&quot;.to_string()).unwrap()],
+        ).unwrap(),
+        &quot;id2&quot;.to_string(),
+        &quot;Hello world a second time&quot;.to_string().into_bytes(),
+    );
+
+    // Connect to a remote server on a custom port
+    let mut mailer = SmtpClient::new_simple(&quot;server.tld&quot;).unwrap()
+        // Set the name sent during EHLO/HELO, default is `localhost`
+        .hello_name(ClientId::Domain(&quot;my.hostname.tld&quot;.to_string()))
+        // Add credentials for authentication
+        .credentials(Credentials::new(&quot;username&quot;.to_string(), &quot;password&quot;.to_string()))
+        // Enable SMTPUTF8 if the server supports it
+        .smtp_utf8(true)
+        // Configure expected authentication mechanism
+        .authentication_mechanism(Mechanism::Plain)
+        // Enable connection reuse
+        .connection_reuse(ConnectionReuseParameters::ReuseUnlimited).transport();
+
+    let result_1 = mailer.send(email_1);
+    assert!(result_1.is_ok());
+
+    // The second email will use the same connection
+    let result_2 = mailer.send(email_2);
+    assert!(result_2.is_ok());
+
+    // Explicitly close the SMTP transaction as we enabled connection reuse
+    mailer.close();
+}
+</code></pre>
+<p>You can specify custom TLS settings:</p>
+<pre><code class="lang-rust,no_run">extern crate native_tls;
+extern crate lettre;
+extern crate lettre_email;
+
+use lettre::{
+    ClientSecurity, ClientTlsParameters, EmailAddress, Envelope, 
+    SendableEmail, SmtpClient, Transport,
+};
+use lettre::smtp::authentication::{Credentials, Mechanism};
+use lettre::smtp::ConnectionReuseParameters;
+use native_tls::{Protocol, TlsConnector};
+
+fn main() {
+    let email = SendableEmail::new(
+        Envelope::new(
+            Some(EmailAddress::new(&quot;user@localhost&quot;.to_string()).unwrap()),
+            vec![EmailAddress::new(&quot;root@localhost&quot;.to_string()).unwrap()],
+        ).unwrap(),
+        &quot;message_id&quot;.to_string(),
+        &quot;Hello world&quot;.to_string().into_bytes(),
+    );
+
+    let mut tls_builder = TlsConnector::builder();
+    tls_builder.min_protocol_version(Some(Protocol::Tlsv10));
+    let tls_parameters =
+        ClientTlsParameters::new(
+            &quot;smtp.example.com&quot;.to_string(),
+            tls_builder.build().unwrap()
+        );
+
+    let mut mailer = SmtpClient::new(
+        (&quot;smtp.example.com&quot;, 465), ClientSecurity::Wrapper(tls_parameters)
+    ).unwrap()
+        .authentication_mechanism(Mechanism::Login)
+        .credentials(Credentials::new(
+            &quot;example_username&quot;.to_string(), &quot;example_password&quot;.to_string()
+        ))
+        .connection_reuse(ConnectionReuseParameters::ReuseUnlimited)
+        .transport();
+
+    let result = mailer.send(email);
+
+    assert!(result.is_ok());
+
+    mailer.close();
+}
+</code></pre>
+<h4 id="lower-level">Lower level</h4>
+<p>You can also send commands, here is a simple email transaction without
+error handling:</p>
+<pre><code class="lang-rust,no_run">extern crate lettre;
+
+use lettre::EmailAddress;
+use lettre::smtp::SMTP_PORT;
+use lettre::smtp::client::InnerClient;
+use lettre::smtp::client::net::NetworkStream;
+use lettre::smtp::extension::ClientId;
+use lettre::smtp::commands::*;
+
+fn main() {
+    let mut email_client: InnerClient&lt;NetworkStream&gt; = InnerClient::new();
+    let _ = email_client.connect(&amp;(&quot;localhost&quot;, SMTP_PORT), None);
+    let _ = email_client.command(EhloCommand::new(ClientId::new(&quot;my_hostname&quot;.to_string())));
+    let _ = email_client.command(
+                MailCommand::new(Some(EmailAddress::new(&quot;user@example.com&quot;.to_string()).unwrap()), vec![])
+            );
+    let _ = email_client.command(
+                RcptCommand::new(EmailAddress::new(&quot;user@example.org&quot;.to_string()).unwrap(), vec![])
+            );
+    let _ = email_client.command(DataCommand);
+    let _ = email_client.message(Box::new(&quot;Test email&quot;.as_bytes()));
+    let _ = email_client.command(QuitCommand);
+}
+</code></pre>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="_index.html" class="navigation navigation-prev " aria-label="Previous page: Sending Messages">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="sendmail.html" class="navigation navigation-next " aria-label="Next page: Sendmail Transport">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"SMTP Transport","level":"1.3.1","depth":2,"next":{"title":"Sendmail Transport","level":"1.3.2","depth":2,"path":"sending-messages/sendmail.md","ref":"sending-messages/sendmail.md","articles":[]},"previous":{"title":"Sending Messages","level":"1.3","depth":1,"path":"sending-messages/_index.md","ref":"sending-messages/_index.md","articles":[{"title":"SMTP Transport","level":"1.3.1","depth":2,"path":"sending-messages/smtp.md","ref":"sending-messages/smtp.md","articles":[]},{"title":"Sendmail Transport","level":"1.3.2","depth":2,"path":"sending-messages/sendmail.md","ref":"sending-messages/sendmail.md","articles":[]},{"title":"File Transport","level":"1.3.3","depth":2,"path":"sending-messages/file.md","ref":"sending-messages/file.md","articles":[]},{"title":"Stub Transport","level":"1.3.4","depth":2,"path":"sending-messages/stub.md","ref":"sending-messages/stub.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":["-sharing","edit-link"],"root":"./content","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"edit-link":{"label":"Edit","base":"https://github.com/lettre/lettre/edit/master/website/content"},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"gitbook":"*"},"file":{"path":"sending-messages/smtp.md","mtime":"2019-03-17T12:56:41.134Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2019-03-17T13:02:01.526Z"},"basePath":"..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../gitbook/gitbook.js"></script>
+    <script src="../gitbook/theme.js"></script>
+    
+        
+        <script src="../gitbook/gitbook-plugin-edit-link/plugin.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
